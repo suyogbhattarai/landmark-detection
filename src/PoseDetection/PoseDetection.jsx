@@ -3,7 +3,6 @@ import { Canvas } from '@react-three/fiber';
 import { PoseLandmarker, FilesetResolver } from 'https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0';
 import ParticleSystem from '../ParticleSystem/ParticleSystem';
 
-
 const PoseDetection = () => {
   const [landmarks, setLandmarks] = useState([]);
   const videoRef = useRef(null);
@@ -48,7 +47,7 @@ const PoseDetection = () => {
   return (
     <>
       <video ref={videoRef} style={{ display: 'none' }} />
-      <Canvas>
+      <Canvas style={{ width: '100vw', height: '100vh', background: 'black' }}> {/* Set background to black */}
         <ambientLight />
         <ParticleSystem landmarks={landmarks} /> {/* Pass landmarks to ParticleSystem */}
       </Canvas>

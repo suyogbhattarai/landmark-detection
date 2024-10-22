@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
 
 const ParticleSystem = ({ landmarks }) => {
   const particleCount = 33; // Assuming 33 landmarks for the human body
@@ -7,16 +8,30 @@ const ParticleSystem = ({ landmarks }) => {
   const particles = useRef(new Float32Array(particleCount * particlesPerLandmark * 3)).current;
   const colors = useRef(new Float32Array(particleCount * particlesPerLandmark * 3)).current;
   const particleGeometry = useRef(new THREE.BufferGeometry()).current;
+  const particleMaterial = useRef(new THREE.PointsMaterial({ size: 0.1, vertexColors: true })).current; // Adjusted size
+  const particleSystem = useRef(null);
 
   useEffect(() => {
-    const particleMaterial = new THREE.PointsMaterial({ size: 0.05, vertexColors: true });
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(particles, 3));
     particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
-    // Return the particle system to the caller (add to the scene in parent)
-    return particleSystem;
-  }, [particles, colors]);
+    particleSystem.current = new THREE.Points(particleGeometry, particleMaterial);
+
+    // Add particle system to the scene
+    return () => {
+      // Cleanup particle system if necessary
+      particleSystem.current.geometry.dispose(); // Dispose geometry
+      particleSystem.current.material.dispose(); // Dispose material
+      particleSystem.current = null;
+    };
+  }, [particles, colors, particleGeometry, particleMaterial]);
+
+  useFrame(() => {
+    if (particleSystem.current) {
+      // Update particle system position in the scene if needed
+      particleSystem.current.geometry.attributes.position.needsUpdate = true; // Update geometry
+    }
+  });
 
   useEffect(() => {
     if (landmarks.length > 0) {
@@ -62,7 +77,11 @@ const ParticleSystem = ({ landmarks }) => {
     particleGeometry.attributes.color.needsUpdate = true;
   };
 
-  return null; // This component does not render any JSX; it operates in the 3D scene directly
+  return (
+    <>
+      {particleSystem.current && <primitive object={particleSystem.current} />} {/* Render particle system */}
+    </>
+  );
 };
 
 export default ParticleSystem;
